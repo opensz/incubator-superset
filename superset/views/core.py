@@ -3127,8 +3127,17 @@ appbuilder.add_separator("Sources")
 @app.after_request
 def apply_http_headers(response):
     """Applies the configuration's http headers to all responses"""
-    for k, v in config.get("HTTP_HEADERS").items():
+
+    override_http_headers = config.get("OVERRIDE_HTTP_HEADERS", {})
+    # HTTP_HEADERS is deprecated, this provides backwards compatibility
+    override_http_headers.update(config.get("HTTP_HEADERS", {}))
+
+    for k, v in override_http_headers.items():
         response.headers[k] = v
+
+    for k, v in config.get("DEFAULT_HTTP_HEADERS", {}).items():
+        if k not in response.headers:
+            response.headers[k] = v
     return response
 
 
